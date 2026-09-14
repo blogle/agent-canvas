@@ -56,7 +56,7 @@ jobs:
           push: true
           tags: ghcr.io/blogle/agent-canvas:1.16.0-selfhosted-cloud.1
           build-args: |
-            AGENT_SERVER_IMAGE=ghcr.io/openhands/agent-server:1.44.0
+            AGENT_SERVER_IMAGE=ghcr.io/openhands/agent-server:1.37.1-python
             AUTOMATION_VERSION=1.9.0
             AGENT_CANVAS_VERSION=1.16.0-selfhosted-cloud.1
             VITE_BASE_PATH=/canvas
