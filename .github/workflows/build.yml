@@ -1,0 +1,69 @@
+name: Build Agent Canvas
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out packaging repository
+        uses: actions/checkout@v4
+
+      - name: Check out OpenHands v1.16.0
+        uses: actions/checkout@v4
+        with:
+          repository: OpenHands/OpenHands
+          ref: v1.16.0
+          path: source
+
+      - name: Apply self-hosted Cloud patch
+        run: git apply --check ../patches/manual-self-hosted-cloud.patch
+        working-directory: ${{ github.workspace }}/source
+
+      - name: Apply patch
+        run: git apply ../patches/manual-self-hosted-cloud.patch
+        working-directory: ${{ github.workspace }}/source
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ${{ github.workspace }}/source
+
+      - name: Test backend modal
+        run: npm run test -- --run __tests__/components/backends/backend-form-modal.test.tsx
+        working-directory: ${{ github.workspace }}/source
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Canvas
+        uses: docker/build-push-action@v6
+        with:
+          context: ./source
+          file: ./source/docker/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ghcr.io/blogle/agent-canvas:1.16.0-selfhosted-cloud.1
+          build-args: |
+            AGENT_SERVER_IMAGE=ghcr.io/openhands/agent-server:1.44.0
+            AUTOMATION_VERSION=1.9.0
+            AGENT_CANVAS_VERSION=1.16.0-selfhosted-cloud.1
+            VITE_BASE_PATH=/canvas
+            VITE_POSTHOG_API_KEY=phc_kBtz5nKmxVRRQ7HtPwr2QX9eMC5j65zE86QKocVNwb4U
+          provenance: false
+
+      - name: Print immutable image digest
+        run: |
+          digest="$(docker buildx imagetools inspect ghcr.io/blogle/agent-canvas:1.16.0-selfhosted-cloud.1 --format '{{json .Manifest.Digest}}' | tr -d '"')"
+          echo "IMAGE_DIGEST=$digest" >> "$GITHUB_STEP_SUMMARY"
