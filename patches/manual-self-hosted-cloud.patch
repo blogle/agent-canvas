@@ -1,8 +1,8 @@
 diff --git a/__tests__/components/backends/backend-form-modal.test.tsx b/__tests__/components/backends/backend-form-modal.test.tsx
-index 04c7cd0..de2edcd 100644
+index 04c7cd0..6706976 100644
 --- a/__tests__/components/backends/backend-form-modal.test.tsx
 +++ b/__tests__/components/backends/backend-form-modal.test.tsx
-@@ -309,3 +309,47 @@ describe("BackendFormModal – edit mode (BackendForm entry point)", () => {
+@@ -309,3 +309,50 @@ describe("BackendFormModal – edit mode (BackendForm entry point)", () => {
      ).not.toBeInTheDocument();
    });
  });
@@ -24,7 +24,10 @@ index 04c7cd0..de2edcd 100644
 +      "radio",
 +    );
 +
-+    await user.type(screen.getByTestId("add-backend-name"), "OpenHands Kubernetes");
++    await user.type(
++      screen.getByTestId("add-backend-name"),
++      "OpenHands Kubernetes",
++    );
 +    await user.type(
 +      screen.getByTestId("add-backend-host"),
 +      "https://openhands.thejeffer.net",
@@ -51,10 +54,18 @@ index 04c7cd0..de2edcd 100644
 +  });
 +});
 diff --git a/src/components/features/backends/backend-form-modal.tsx b/src/components/features/backends/backend-form-modal.tsx
-index a302aa5..ecb8bad 100644
+index a302aa5..4c1a574 100644
 --- a/src/components/features/backends/backend-form-modal.tsx
 +++ b/src/components/features/backends/backend-form-modal.tsx
-@@ -1523,7 +1523,13 @@ function AddBackendConnectionOptions({
+@@ -1334,6 +1334,7 @@ function AgentServerGuidance({ location }: { location: AgentServerLocation }) {
+   );
+ }
+ 
++// eslint-disable-next-line @typescript-eslint/no-unused-vars -- retained for existing chooser consumers
+ function AddBackendChooser({
+   onConnected,
+   source,
+@@ -1523,7 +1524,13 @@ function AddBackendConnectionOptions({
      );
    }
  
