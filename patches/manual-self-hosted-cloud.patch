@@ -1,0 +1,71 @@
+diff --git a/__tests__/components/backends/backend-form-modal.test.tsx b/__tests__/components/backends/backend-form-modal.test.tsx
+index 04c7cd0..de2edcd 100644
+--- a/__tests__/components/backends/backend-form-modal.test.tsx
++++ b/__tests__/components/backends/backend-form-modal.test.tsx
+@@ -309,3 +309,47 @@ describe("BackendFormModal – edit mode (BackendForm entry point)", () => {
+     ).not.toBeInTheDocument();
+   });
+ });
++
++describe("BackendFormModal – add mode", () => {
++  it("adds a manually configured cloud backend", async () => {
++    const user = userEvent.setup();
++    renderWithProviders(<BackendFormModal mode="add" onClose={vi.fn()} />);
++
++    expect(screen.getByTestId("add-backend-form")).toBeVisible();
++    const kind = screen.getByTestId("add-backend-kind");
++    expect(kind).toBeVisible();
++    expect(screen.getByTestId("add-backend-kind-option-local")).toHaveAttribute(
++      "role",
++      "radio",
++    );
++    expect(screen.getByTestId("add-backend-kind-option-cloud")).toHaveAttribute(
++      "role",
++      "radio",
++    );
++
++    await user.type(screen.getByTestId("add-backend-name"), "OpenHands Kubernetes");
++    await user.type(
++      screen.getByTestId("add-backend-host"),
++      "https://openhands.thejeffer.net",
++    );
++    await user.click(screen.getByTestId("add-backend-kind-option-cloud"));
++    await user.type(screen.getByTestId("add-backend-api-key"), "local-legacy");
++    await user.click(screen.getByTestId("add-backend-submit"));
++
++    await waitFor(() => {
++      const stored = JSON.parse(
++        window.localStorage.getItem("openhands-backends") ?? "[]",
++      );
++      expect(stored).toEqual(
++        expect.arrayContaining([
++          expect.objectContaining({
++            name: "OpenHands Kubernetes",
++            host: "https://openhands.thejeffer.net",
++            apiKey: "local-legacy",
++            kind: "cloud",
++          }),
++        ]),
++      );
++    });
++  });
++});
+diff --git a/src/components/features/backends/backend-form-modal.tsx b/src/components/features/backends/backend-form-modal.tsx
+index a302aa5..ecb8bad 100644
+--- a/src/components/features/backends/backend-form-modal.tsx
++++ b/src/components/features/backends/backend-form-modal.tsx
+@@ -1523,7 +1523,13 @@ function AddBackendConnectionOptions({
+     );
+   }
+ 
+-  return <AddBackendChooser onConnected={handleConnected} source={source} />;
++  return (
++    <BackendConnectionOptions
++      onConnected={handleConnected}
++      testIdRoot="add-backend"
++      analyticsSource={source}
++    />
++  );
+ }
+ 
+ // ── Modal wrappers ──────────────────────────────────────────────────
