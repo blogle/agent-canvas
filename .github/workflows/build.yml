@@ -48,6 +48,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Canvas
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: ./source
@@ -65,5 +66,6 @@ jobs:
 
       - name: Print immutable image digest
         run: |
-          digest="$(docker buildx imagetools inspect ghcr.io/blogle/agent-canvas:1.16.0-selfhosted-cloud.1 --format '{{json .Manifest.Digest}}' | tr -d '"')"
+          digest="${{ steps.build.outputs.digest }}"
+          echo "IMAGE_DIGEST=$digest"
           echo "IMAGE_DIGEST=$digest" >> "$GITHUB_STEP_SUMMARY"
